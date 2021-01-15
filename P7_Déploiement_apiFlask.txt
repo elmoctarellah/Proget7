@@ -1,0 +1,173 @@
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~ (master)
+$  mkdir P_7
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~ (master)
+$  cd P_7
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  git init
+Initialized empty Git repository in C:/Users/bigdata/P_7/.git/
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  touch app.py .gitignore README.md requirements.txt
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  python -m pip freeze > requirements.txt
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  python -m pip install gunicorn==20.0.4
+Requirement already satisfied: gunicorn==20.0.4 in c:\users\bigdata\apl\programs\python\python38-32\lib\site-packages (20.0.4)
+Requirement already satisfied: setuptools>=3.0 in c:\users\bigdata\app\programs\python\python38-32\lib\site-packages (from gunicorn==20.0.4)
+WARNING: You are using pip version 20.1.1; however, version 20.3.3 is
+You should consider upgrading via the 'C:\Users\bigdata\AppData\Local\ython\Python38-32\python.exe -m pip install --upgrade pip' command.
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  python -m pip freeze > requirements.txt
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$ touch runtime.txt
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$ heroku login
+heroku: Press any key to open up the browser to login or q to exit: l
+Opening browser to https://cli-auth.heroku.com/auth/cli/browser/105d23a9-8c36-65489785b3f4?requestor=SFMyNTY.g2gDbQAAAA8xNzYuMTkxLjE3Ny4yMzNwFiAAFRgA.ha1EmX4huW_4Ck-OUVuykwajZZ6vCDOQZDUVxG-dDlU
+heroku: Waiting for login...
+Logging in... done
+Logged in as elmoctarellah@gmail.com
+^CTerminer le programme de commandes (O/N) ? o
+o
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  heroku create apifkprojet7
+Creating apifkprojet7... done
+https://apifkprojet7.herokuapp.com/ | https://git.heroku.com/apifkproj
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  git add .
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$ git commit -m "Init deploy3"
+[master (root-commit) 6fa5d99] Init deploy3
+ 5 files changed, 57 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 README.md
+ create mode 100644 app.py
+ create mode 100644 requirements.txt
+ create mode 100644 runtime.txt
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$  git push heroku master
+Enumerating objects: 6, done.
+Counting objects: 100% (6/6), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 1.07 KiB | 546.00 KiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0), pack-reused 0
+remote: Compressing source files... done.
+remote: Building source:
+remote:
+remote: -----> Building on the Heroku-20 stack
+remote: -----> Python app detected
+remote:  !     Python has released a security update! Please consider to python-3.8.7
+remote:        Learn More: https://devcenter.heroku.com/articles/pytho
+remote: -----> Installing python-3.8.5
+remote: -----> Installing pip 20.1.1, setuptools 47.1.1 and wheel 0.34
+remote: -----> Installing SQLite3
+remote: -----> Installing requirements with pip
+remote:        Collecting appdirs==1.4.4
+remote:          Downloading appdirs-1.4.4-py2.py3-none-any.whl (9.6 k
+remote:        Collecting certifi==2020.12.5
+remote:          Downloading certifi-2020.12.5-py2.py3-none-any.whl (1
+remote:        Collecting cffi==1.14.4
+remote:          Downloading cffi-1.14.4-cp38-cp38-manylinux1_x86_64.w)
+remote:        Collecting chardet==4.0.0
+remote:          Downloading chardet-4.0.0-py2.py3-none-any.whl (178 k
+remote:        Collecting click==7.1.2
+remote:          Downloading click-7.1.2-py2.py3-none-any.whl (82 kB)
+remote:        Collecting cryptography==3.3.1
+remote:          Downloading cryptography-3.3.1-cp36-abi3-manylinux201hl (2.6 MB)
+remote:        Collecting distlib==0.3.1
+remote:          Downloading distlib-0.3.1-py2.py3-none-any.whl (335 k
+remote:        Collecting filelock==3.0.12
+remote:          Downloading filelock-3.0.12-py3-none-any.whl (7.6 kB)
+remote:        Collecting Flask==1.1.2
+remote:          Downloading Flask-1.1.2-py2.py3-none-any.whl (94 kB)
+remote:        Collecting gunicorn==20.0.4
+remote:          Downloading gunicorn-20.0.4-py2.py3-none-any.whl (77
+remote:        Collecting idna==2.10
+remote:          Downloading idna-2.10-py2.py3-none-any.whl (58 kB)
+remote:        Collecting itsdangerous==1.1.0
+remote:          Downloading itsdangerous-1.1.0-py2.py3-none-any.whl (
+remote:        Collecting Jinja2==2.11.2
+remote:          Downloading Jinja2-2.11.2-py2.py3-none-any.whl (125 k
+remote:        Collecting joblib==1.0.0
+remote:          Downloading joblib-1.0.0-py3-none-any.whl (302 kB)
+remote:        Collecting MarkupSafe==1.1.1
+remote:          Downloading MarkupSafe-1.1.1-cp38-cp38-manylinux1_x862 kB)
+remote:        Collecting numpy==1.19.2
+remote:          Downloading numpy-1.19.2-cp38-cp38-manylinux2010_x86_.5 MB)
+remote:        Collecting pandas==1.2.0
+remote:          Downloading pandas-1.2.0-cp38-cp38-manylinux1_x86_64.B)
+remote:        Collecting pipenv==2020.11.15
+remote:          Downloading pipenv-2020.11.15-py2.py3-none-any.whl (3
+remote:        Collecting pycparser==2.20
+remote:          Downloading pycparser-2.20-py2.py3-none-any.whl (112
+remote:        Collecting pyOpenSSL==20.0.1
+remote:          Downloading pyOpenSSL-20.0.1-py2.py3-none-any.whl (54
+remote:        Collecting python-dateutil==2.8.1
+remote:          Downloading python_dateutil-2.8.1-py2.py3-none-any.wh
+remote:        Collecting pytz==2020.5
+remote:          Downloading pytz-2020.5-py2.py3-none-any.whl (510 kB)
+remote:        Collecting requests==2.25.1
+remote:          Downloading requests-2.25.1-py2.py3-none-any.whl (61
+remote:        Collecting scikit-learn==0.24.0
+remote:          Downloading scikit_learn-0.24.0-cp38-cp38-manylinux20whl (24.9 MB)
+remote:        Collecting scipy==1.6.0
+remote:          Downloading scipy-1.6.0-cp38-cp38-manylinux1_x86_64.wB)
+remote:        Collecting six==1.15.0
+remote:          Downloading six-1.15.0-py2.py3-none-any.whl (10 kB)
+remote:        Collecting threadpoolctl==2.1.0
+remote:          Downloading threadpoolctl-2.1.0-py3-none-any.whl (12
+remote:        Collecting urllib3==1.26.2
+remote:          Downloading urllib3-1.26.2-py2.py3-none-any.whl (136
+remote:        Collecting virtualenv==20.3.0
+remote:          Downloading virtualenv-20.3.0-py2.py3-none-any.whl (5
+remote:        Collecting virtualenv-clone==0.5.4
+remote:          Downloading virtualenv_clone-0.5.4-py2.py3-none-any.w)
+remote:        Collecting Werkzeug==1.0.1
+remote:          Downloading Werkzeug-1.0.1-py2.py3-none-any.whl (298
+remote:        Installing collected packages: appdirs, certifi, pycpar chardet, click, six, cryptography, distlib, filelock, itsdangerous, M Jinja2, Werkzeug, Flask, gunicorn, idna, joblib, numpy, pytz, python-pandas, virtualenv-clone, virtualenv, pipenv, pyOpenSSL, urllib3, requy, threadpoolctl, scikit-learn
+remote:        Successfully installed Flask-1.1.2 Jinja2-2.11.2 Markup Werkzeug-1.0.1 appdirs-1.4.4 certifi-2020.12.5 cffi-1.14.4 chardet-4.7.1.2 cryptography-3.3.1 distlib-0.3.1 filelock-3.0.12 gunicorn-20.0.4 itsdangerous-1.1.0 joblib-1.0.0 numpy-1.19.2 pandas-1.2.0 pipenv-2020penSSL-20.0.1 pycparser-2.20 python-dateutil-2.8.1 pytz-2020.5 requestcikit-learn-0.24.0 scipy-1.6.0 six-1.15.0 threadpoolctl-2.1.0 urllib3-tualenv-20.3.0 virtualenv-clone-0.5.4
+remote: -----> Discovering process types
+remote:        Procfile declares types -> (none)
+remote:
+remote: -----> Compressing...
+remote:        Done: 152.5M
+remote: -----> Launching...
+remote:        Released v3
+remote:        https://apifkprojet7.herokuapp.com/ deployed to Heroku
+remote:
+remote: Verifying deploy... done.
+To https://git.heroku.com/apifkprojet7.git
+ * [new branch]      master -> master
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$ python app.py
+Traceback (most recent call last):
+  File "app.py", line 10, in <module>
+    loaded_model = joblib.load('C:/Users/bigdata/finalized_model.sav')
+  File "C:\Users\bigdata\AppData\Local\Programs\Python\Python38-32\libages\joblib\numpy_pickle.py", line 585, in load
+    obj = _unpickle(fobj, filename, mmap_mode)
+  File "C:\Users\bigdata\AppData\Local\Programs\Python\Python38-32\libages\joblib\numpy_pickle.py", line 504, in _unpickle
+    obj = unpickler.load()
+  File "C:\Users\bigdata\AppData\Local\Programs\Python\Python38-32\lib", line 1210, in load
+    dispatch[key[0]](self)
+  File "C:\Users\bigdata\AppData\Local\Programs\Python\Python38-32\lib", line 1526, in load_global
+    klass = self.find_class(module, name)
+  File "C:\Users\bigdata\AppData\Local\Programs\Python\Python38-32\lib", line 1577, in find_class
+    __import__(module, level=0)
+ModuleNotFoundError: No module named 'lightgbm'
+
+bigdata@LAPTOP-6EOK963M MINGW64 ~/P_7 (master)
+$

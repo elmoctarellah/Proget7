@@ -1,34 +1,32 @@
+
+
+import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import pandas as pd
-import numpy as np
 import plotly.express as px
+import numpy as np
+import plotly.graph_objects as go
 import plotly.figure_factory as ff
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
+import pandas as pd
+import gc
+import json
 import joblib
+import dash_bootstrap_components as dbc
+
 from flask import Flask, render_template, jsonify
 import requests
 
-df = pd.read_csv('df2.csv')
-df_X2_test = pd.read_csv('df_X2_test.csv')
+Threshold = 0.08
 
-list_feature = ['PAYMENT_RATE', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'TARGET']
-dff1 = df[['PAYMENT_RATE', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'TARGET']]
-dff=dff1.head(10000)
-df_X2_test = pd.read_csv('df_X2_test.csv')
-
-df_f_importance = pd.read_csv('feature_importances.csv')
-
-df_f_importance = df_f_importance.head(10)
-
-#scoreApi = Flask(__name__)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__,  external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+#server = app.server
+
+# load model
 SCORE_API_URL ='http://127.0.0.1:5000/'
 
 # send request to score API in order to get scores dataFrame
@@ -39,90 +37,178 @@ jsonified_df_scores = response.content.decode('utf-8')
 
 df_scores = pd.read_json(jsonified_df_scores, orient='split')
 
-fig1 = px.bar(df_f_importance, x=df_f_importance['feature'], y=df_f_importance['importance'])
+df_X2_train = joblib.load('file_X2_train.sav')
+df = pd.read_csv('features.csv')
 
-fig1.update_layout(transition_duration=500)
+dff = df[['PAYMENT_RATE', 'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3', 'TARGET']]
+
+
+df_f_importance = pd.read_csv('feature_importances.csv').head(10)
+
+
+# Reading rhe Shap values that have been preprocessed earlier.
+# Could be put in preprocessing step BuildDataFromZipFile as well
+shapValues1 = np.load("shapValues20K.npy")
+
+#available_features = df_scores.columns
+
+def getCustomerFeatures(CustId, NbFeatures = 10):
+    maxFeatureId = sorted(range(len(shapValues1[CustId])),
+                          key=lambda x: abs(shapValues1[CustId][x]))[-NbFeatures:]
+    FeatureNames = np.empty(NbFeatures, dtype=object)
+    FeatureShapValues = np.empty(NbFeatures, dtype=float)
+    #FeatureStdValues = np.empty(NbFeatures, dtype=float)
+    for i, Id in enumerate(maxFeatureId):
+        FeatureNames[i] = df_X2_train.columns[Id]
+        FeatureShapValues[i] = shapValues1[CustId][Id]
+        #FeatureStdValues[i] = df_X2_train.iloc[CustId][Id]
+    positive = FeatureShapValues > 0
+    colors = list(map(lambda x: 'red' if x else 'blue', positive))
+    return (FeatureNames, FeatureShapValues, colors)
+
+
+def sortSecond(val):
+    return val[1]
 
 
 
+# Coefficient Figure
+coef_fig = px.bar(df_f_importance, y=df_f_importance['feature'], x=df_f_importance['importance'], orientation="h",
+                 title="Mean Feature Importance")
 
-app.layout = html.Div(children=[
-    # All elements from the top of the page
+coef_fig.update_traces(marker_color='orange')
+coef_fig.update_layout(width=700, height=300, bargap=0.05,
+                       margin=dict(l=100, r=100, t=50, b=50))
+
+# Data for probability distribution
+NbBins = 500
+dist = pd.cut(df_scores['proba'], bins=NbBins).value_counts()
+dist.sort_index(inplace=True)
+ticks = np.linspace(0, 1, NbBins)
+DashBoradTH=int(Threshold*len(dist))
+
+# Layout of the Dashboard
+app.layout = html.Div([
     html.Div([
-        html.H1(children='Feature Importance'),
+        html.Div([
+            html.H6("Customer Selection"),
+            html.Div([
+                   html.P("Custumer Id: "),
+                   dbc.Input(id="customer-id", value=0, type="number", min=0, max=df_scores.shape[0]),
+                   dbc.Card(
+                     [
+                        html.H3(id='cust-answer', className="card-title"),
+                        html.H6(id='cust-score', className="card-title"),
+                     ]),
+                   html.Br(),
+                  ], style={'width': '48%', 'display': 'inline-block'}),
+                  html.Div([dcc.Graph(id='proba-score')
+                  ], style={'width': '48%', 'display': 'inline-block'}),
 
-        html.Div(children='''
-            Les dix premières meilleures features.
-        '''),
+                  html.Div([
+                    dcc.Graph(id='feature-graphic1')],
+                    style={'width': '100%', 'display': 'inline-block'}),
 
-        dcc.Graph(
-            id='graph',
-            figure=fig1
-        ),  
-    ]),
-    # New Div for all elements in the new 'row' of the page
+    ],
+    style={'width': '48%', 'display': 'inline-block'}),
     html.Div([
-        html.H1(children='Courbe de densité selon classe 0 et 1'),
-        dcc.Graph(id='tip-graph'),
-        html.Label([
-            "selection",
+        dcc.Graph(figure=coef_fig),
+    ],
+    style={'width': '48%', 'display': 'inline-block'}),
+
+        html.Div([
+            
+            dcc.Graph(id='tip-graph'),
+            
             dcc.Dropdown(
                 id='column-dropdown', clearable=False,
-                options=[
-                    {'label': c, 'value': c}
-                    for c in dff.drop(['TARGET'], axis=1).columns.unique()
-                ])
-        ]),
-        
-        html.Label([
-            "customerId",
-            dcc.Dropdown(
-                id='column-dropdown1', clearable=False,
-                options=[
-                    {'label': c, 'value': c}
-                    for c in dff.index
-                ])
-        ]),
-    ]),
-    
-    # New Div for all elements in the new 'row' of the page
-    html.Div([ 
-        html.H1(children='Calcul et affichage du score pour un client'),
-        dcc.Graph(id='tip1-graph'),
-        html.Label([
-            "indexclient",
-            dcc.Dropdown(
-                id='index-dropdown', clearable=False,
-                options=[
-                    {'label': c, 'value': c}
-                    for c in df_X2_test.index
-                ])
-        ]),
-    ]),
-    
-    html.Div([ 
-        html.H1(children='Courbe du score clients'),
-        dcc.Graph(id='tip2-graph'),
-        html.Label([
-            "indexclient1",
-            dcc.Dropdown(
-                id='index-dropdown1', clearable=False,
-                options=[
-                    {'label': c, 'value': c}
-                    for c in df_X2_test.index
-                ])
-        ]),
+                options=[{'label': i, 'value': i} for i in dff.drop(['TARGET'], axis=1).columns.unique()],
+                value='EXT_SOURCE_1'
+             ),
+            
+
+        ],
+        style={'width': '48%', 'display': 'inline-block'})
+
+      
     ])
-    
+
     
 ])
 
-# Callback function that automatically updates the tip-graph based on chosen colorscale
+# Callbacks functions
+
+# Callback for the customer feature importance
+@app.callback(
+    Output('feature-graphic1', 'figure'),
+    [Input('customer-id', 'value')])
+def update_graph(customerId):
+    FeatureNames, FeatureShapValues, colors = getCustomerFeatures(customerId)
+    cust_coef_fig = px.bar(
+        y=FeatureNames,
+        x=FeatureShapValues,
+        orientation="h",
+#        color=colors,
+        labels={"x": "Weight on Prediction", "y": "Features"},
+        title="Customer Feature Importance",
+    )
+    cust_coef_fig.update_traces(marker_color=colors)
+    cust_coef_fig.update_layout(width=700, height=300, bargap=0.05,
+                                margin=dict(l=100, r=100, t=50, b=50))
+
+    return cust_coef_fig
+
+# Callback for the prediction and score of the selected customer
+@app.callback(
+    Output('cust-answer', 'children'),
+    [Input('customer-id', 'value')])
+def update_score(customerId):
+    Score = df_scores.loc[customerId, 'proba']
+    Answer = 'Accepted' if Score <= Threshold else 'Refused'
+    return f"{Answer}"
+
+@app.callback(
+    Output('cust-score', 'children'),
+    [Input('customer-id', 'value')])
+def update_score(customerId):
+    Score = df_scores.loc[customerId, 'proba']
+    return f"Score: {Score:.2f}"
+
+# Callback for the probability distribution 
+@app.callback(
+    Output('proba-score', 'figure'),
+    [Input('customer-id', 'value')])
+def update_graph(customerId):
+    fig = go.Figure(data = go.Scatter(x=ticks[:DashBoradTH],
+                                      y=dist[:DashBoradTH],
+                                      mode='lines',
+                                      marker=dict(color='blue'),
+                                      name='Success'))
+    fig.add_trace(go.Scatter(x=ticks[DashBoradTH:],
+                             y=dist[DashBoradTH:],
+                             mode='lines',
+                             marker=dict(color='red'),
+                             name='Default'))
+    Score = df_scores.loc[customerId, 'proba']
+    rank = int(Score*len(dist))-1
+    fig.add_trace(go.Scatter(x=[Score], y=[dist[rank]], mode='markers',
+                             marker=dict(size=15, color='black'),
+                             name='Customer'))
+    fig.update_layout(
+        title="Prediction Distribution",
+        margin=dict(l=20, r=20, t=40, b=20),
+        width=600, height=150,
+        paper_bgcolor="LightSteelBlue",
+    )
+
+    return fig
+
+# Callback for the X axis feature distribution for accepted and refused customers 
 @app.callback(
     Output('tip-graph', 'figure'),
-    [Input("column-dropdown", "value"),
-    Input("column-dropdown1", "value")]
-)
+    [Input('column-dropdown', 'value'),
+     Input('customer-id', 'value')])
+
 def update_tip_figure(selection, customerId):
     hist_data = [df.loc[df['TARGET'] == 0, selection], df.loc[df['TARGET'] == 1, selection]]
     group_labels = ['target == 0', 'target == 1']
@@ -165,68 +251,10 @@ def update_tip_figure(selection, customerId):
 )
     return fig
 
-@app.callback(
-    Output('tip1-graph', 'figure'),
-    [Input("index-dropdown", "value")]
-)
-def update_tip_figure(indexclient):
-    
-   
-    fig = go.Figure(data=[go.Table(header=dict(values=['Index_client', 'Score']),
-                 cells=dict(values=[[indexclient], [df_scores.iloc[indexclient]['proba']]]))
-                     ])
-    
-    
-    
-    return  fig 
 
 
-@app.callback(
-    Output('tip2-graph', 'figure'),
-    [Input("index-dropdown1", "value")]
-    
-)
 
-def update_tip_figure(indexclient1):
-    
-    fig = ff.create_distplot([df_scores['proba']], ['Score_client'],
 
-                             show_hist=False, 
-
-                             show_rug=False)
-
-    title="{} Feature Distribution".format('proba')
-
-    fig.update_layout(shapes=[
-
-        dict(
-
-            type= 'line',
-
-            yref= 'paper',
-
-            y0= 0,
-
-            y1= 1,
-
-            xref= 'x',
-
-            x0= df_scores.iloc[indexclient1]['proba'],
-
-            x1= df_scores.iloc[indexclient1]['proba']
-
-        )],
-
-        title=title,
-
-        margin=dict(l=20, r=20, t=40, b=20),
-
-        width=400, height=200,
-
-        paper_bgcolor="LightSteelBlue",
-
-)
-    return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
